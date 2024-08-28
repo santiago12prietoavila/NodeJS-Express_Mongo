@@ -1,12 +1,12 @@
-const { required } = require('@hapi/joi');
+const { required, boolean } = require('@hapi/joi');
 const mongoose = require('mongoose');
 
 const usuarioSchema = new mongoose.Schema({
-    email: {
+    nombre: {
         type: String,
         required: true
     },
-    nombre: {
+    email: {
         type: String,
         required: true
     },
@@ -14,12 +14,15 @@ const usuarioSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    estado: {
+    estado:{
         type: Boolean,
-        default: false
+        default: true
     },
-    imagen: {
+    Imagen: {
         type: String,
         required: false
     }
 });
+
+// Asegúrate de exportar el modelo
+module.exports = mongoose.model('Usuario', usuarioSchema);
