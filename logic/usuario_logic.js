@@ -3,10 +3,16 @@ const schema = require('../validaciones/usuarios_validations').schema; // Import
 
 // Función asíncrona para crear un objeto de tipo usuario
 async function crearUsuario(body) {
-    // Validar los datos aquí si es necesario
+    // Validar los datos usando Joi
     const { error } = schema.validate(body);
     if (error) {
         throw new Error(`Validación fallida: ${error.details.map(detail => detail.message).join(', ')}`);
+    }
+
+    // Verificar si el email ya existe
+    const existingUsuario = await Usuario.findOne({ email: body.email });
+    if (existingUsuario) {
+        throw new Error('El correo electrónico ya está registrado.');
     }
 
     let usuario = new Usuario({
@@ -20,17 +26,30 @@ async function crearUsuario(body) {
 
 // Función asíncrona para actualizar un usuario
 async function actualizarUsuario(email, body) {
-    // Validar los datos aquí si es necesario
+    // Validar los datos usando Joi
     const { error } = schema.validate(body);
     if (error) {
         throw new Error(`Validación fallida: ${error.details.map(detail => detail.message).join(', ')}`);
     }
 
+    // Verificar si el nuevo email ya existe (si es que se intenta cambiar el email)
+    if (body.email && body.email !== email) {
+        const existingUsuario = await Usuario.findOne({ email: body.email });
+        if (existingUsuario) {
+            throw new Error('El nuevo correo electrónico ya está registrado.');
+        }
+    }
+
     let usuario = await Usuario.findOneAndUpdate(
         { email: email },
-        { $set: { nombre: body.nombre, password: body.password } },
+        { $set: { nombre: body.nombre, password: body.password, email: body.email || email } },
         { new: true }
     );
+
+    if (!usuario) {
+        throw new Error('Usuario no encontrado.');
+    }
+
     return usuario;
 }
 
