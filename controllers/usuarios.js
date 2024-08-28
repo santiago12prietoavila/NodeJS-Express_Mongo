@@ -23,7 +23,7 @@ const updateSchema = Joi.object({
 
     email: Joi.string()
         .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'edu', 'co'] } })
-        
+
 });
 
 // Validación para el email en la URL
@@ -91,7 +91,7 @@ ruta.put('/:email', async (req, res) => {
         });
     }
 
-    const { error, value } = updateSchema.validate({ 
+    const { error, value } = updateSchema.validate({
         nombre: req.body.nombre,
         password: req.body.password
     });
@@ -113,6 +113,38 @@ ruta.put('/:email', async (req, res) => {
     }
 });
 
+// Función asíncrona para desactivar un usuario
+async function desactivarUsuario(email) {
+    // Buscamos al usuario por su correo electrónico y lo actualizamos
+    let usuario = await Usuario.findOneAndUpdate(
+        { email: email }, // Buscamos al usuario por su correo electrónico
+        {
+            $set: {
+                estado: false // Cambiamos el estado del usuario a inactivo
+            }
+        },
+        { new: true } // Retornamos el documento actualizado
+    );
+    return usuario;
+}
 
+// Endpoint de tipo DELETE para el recurso USUARIOS
+ruta.delete('/:email', (req, res) => {
+    // Llama a la función desactivarUsuario con el email del usuario a eliminar
+    let resultado = desactivarUsuario(req.params.email);
+
+    // Maneja la promesa retornada por desactivarUsuario
+    resultado.then(valor => {
+        // Si la operación fue exitosa, envía una respuesta JSON con el usuario desactivado
+        res.json({
+            usuario: valor
+        });
+    }).catch(err => {
+        // Si ocurre un error, envía una respuesta con código de estado 400 (Bad Request) y un mensaje de error
+        res.status(400).json({
+            err
+        });
+    });
+});
 
 module.exports = ruta;
