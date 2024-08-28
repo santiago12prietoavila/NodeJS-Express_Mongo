@@ -1,35 +1,31 @@
 const Usuario = require('../models/usuario_model');
-const Joi = require('@hapi/joi');
-
-// Definir el esquema de validación para el usuario
-const schema = Joi.object({
-    nombre: Joi.string().min(3).max(30).required().pattern(/^[A-Za-záéíóú ]{3,30}$/),
-    password: Joi.string().min(3).max(30).optional().pattern(/^[a-zA-Z0-9]{3,30}$/),
-    email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'edu', 'co'] } })
-});
-
-
-// Validación para el email en la URL
-const emailSchema = Joi.object({
-    email: Joi.string()
-        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'edu', 'co'] } })
-        .required()
-});
-
-
+const schema = require('../validaciones/usuarios_validations').schema; // Importa el schema correctamente
 
 // Función asíncrona para crear un objeto de tipo usuario
 async function crearUsuario(body) {
+    // Validar los datos aquí si es necesario
+    const { error } = schema.validate(body);
+    if (error) {
+        throw new Error(`Validación fallida: ${error.details.map(detail => detail.message).join(', ')}`);
+    }
+
     let usuario = new Usuario({
         email: body.email,
         nombre: body.nombre,
         password: body.password
     });
+
     return await usuario.save();
 }
 
 // Función asíncrona para actualizar un usuario
 async function actualizarUsuario(email, body) {
+    // Validar los datos aquí si es necesario
+    const { error } = schema.validate(body);
+    if (error) {
+        throw new Error(`Validación fallida: ${error.details.map(detail => detail.message).join(', ')}`);
+    }
+
     let usuario = await Usuario.findOneAndUpdate(
         { email: email },
         { $set: { nombre: body.nombre, password: body.password } },
@@ -52,20 +48,15 @@ async function desactivarUsuario(email) {
     }
 }
 
-
 // Función asíncrona para listar todos los usuarios activos
 async function listarUsuarioActivos() {
     let usuarios = await Usuario.find({ estado: true });
     return usuarios;
 }
 
-
-
 module.exports = {
-    schema,
     crearUsuario,
     actualizarUsuario,
     desactivarUsuario,
     listarUsuarioActivos
 };
-

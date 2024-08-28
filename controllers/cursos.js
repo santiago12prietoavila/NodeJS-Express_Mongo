@@ -1,6 +1,8 @@
 const express = require('express');
-const logic = require('../logic/curso_logic');
 const ruta = express.Router();
+const Joi = require('@hapi/joi');
+const logic = require('../logic/curso_logic');
+const cursoSchema = require('../validaciones/cursos_validations');
 
 /*
 ruta.get('/', (req, res) => {
@@ -24,15 +26,16 @@ ruta.get('/', (req, res) => {  // Cambié POST por GET
 
 // Endpoint de tipo POST para el recurso CURSOS
 ruta.post('/', (req, res) => {
+    const { error } = cursoSchema.validate(req.body);  // Realizar la validación
+    if (error) return res.status(400).send(error.details[0].message);  // Enviar error si la validación falla
+
     let resultado = logic.crearCurso(req.body);
 
     resultado.then(curso => {
         res.json({ curso });
     }).catch(err => {
-        res.status(400).json({
-            err
-        })
-    })
+        res.status(400).json({ err });
+    });
 });
 
 

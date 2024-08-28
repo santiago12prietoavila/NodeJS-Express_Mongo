@@ -1,25 +1,6 @@
 const Curso = require('../models/curso_model');
-const Joi = require('@hapi/joi');
+const cursoSchema = require('../validaciones/cursos_validations');
 
-// Esquema de validación para crear o actualizar un curso
-const cursoSchema = Joi.object({
-    titulo: Joi.string()
-        .min(3)
-        .max(100)
-        .required()
-        .pattern(/^[A-Za-z0-9\s]{3,100}$/),
-    descripcion: Joi.string()
-        .max(500)
-        .optional()
-        .pattern(/^[A-Za-z0-9\s.,!?]{0,500}$/),
-    alumnos: Joi.array()
-        .items(Joi.string().email())
-        .required(),
-    calificacion: Joi.number()
-        .min(0)
-        .max(10)
-        .required()
-});
 
 
 //Funcion asincrona para crear cursos
@@ -67,7 +48,6 @@ async function listarCursosActivos() {
 
 
 module.exports = {
-    cursoSchema,
     crearCurso,
     actualizarCurso,
     desactivarCurso,
